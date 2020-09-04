@@ -62,7 +62,11 @@ class _MyHomePageState extends State<MyHomePage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
   _MyHomePageState() {
-    getEntries();
+    getEntries().whenComplete(() => {
+    setState(() {
+
+    })
+    });
   }
 
   Future getEntries() async {
@@ -91,16 +95,13 @@ class _MyHomePageState extends State<MyHomePage> {
     final prefs = await SharedPreferences.getInstance();
     String result = '{"results":[';
     for (int i = 0; i < _entries.length; i++) {
-      result += _entries[i].toString() + ",";
+      result += _entries[i].toString().replaceAll('/', '//') + ",";
     }
     if (result != '{"results":[') {
       result = result.substring(0, result.length - 1) + "]}";
       print("SAVE: " + result);
       prefs.setString("result", result);
     }
-    //String result = json.encode(_entries).toString();
-    //print("SAVE: " + result);
-    //prefs.setString("result", result);
   }
 
   void selectedChoice(String choice) async {
@@ -140,9 +141,11 @@ class _MyHomePageState extends State<MyHomePage> {
               color: Colors.green,
               child: InkWell(
                   onTap: () {
-                    Clipboard.setData(new ClipboardData(text: _entries[index].Content));
+                    Clipboard.setData(
+                        new ClipboardData(text: _entries[index].Content));
                     _scaffoldKey.currentState.showSnackBar(SnackBar(
-                      content: Text(_entries[index].Content + ' copied to clipboard.'),
+                      content: Text(
+                          _entries[index].Content + ' copied to clipboard.'),
                       duration: Duration(seconds: 1),
                     ));
                   },
@@ -182,19 +185,22 @@ class _MyHomePageState extends State<MyHomePage> {
                             ),
                           ],
                         ),*/
-                        Row(children: [
+                        Row(mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
                           Text(
                             "Value: ",
                             style: TextStyle(
                               fontSize: 18,
                             ),
                           ),
-                          Text(
+                          Flexible(
+                              child: Text(
                             _entries[index].Content,
+                            maxLines: 10,
                             style: TextStyle(
                               fontSize: 18,
                             ),
-                          )
+                          ))
                         ]),
                         Row(children: [
                           Text(
@@ -219,9 +225,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          var options = ScanOptions(
-
-          );
+          var options = ScanOptions();
           var result = await BarcodeScanner.scan();
           if (result.type == ResultType.Barcode)
             setState(() {
